@@ -10,15 +10,15 @@ import (
 	//"TagaBot/database"
 )
 
-type messager struct {
-	bot    *tgbot.BotAPI
-	chatID int64
+type executor struct {
+	update tgbot.Update
 }
 
 func main() {
 	bot := createBot()
 	u := startGetUpd()
 	updates, _ := bot.GetUpdatesChan(u)
+	database.ConnectDB()
 	monitoring(bot, updates)
 }
 
@@ -56,42 +56,63 @@ func monitoring(bot *tgbot.BotAPI, updates tgbot.UpdatesChannel) {
 
 func execCommnd(update tgbot.Update) tgbot.MessageConfig {
 	var msg tgbot.MessageConfig
-
+	exec := executor{update}
 	switch command := strings.Fields(update.Message.Text)[0]; command {
 	case "/greetings":
-		msg = greetings(update)
+		msg = exec.greetings()
 	case "/bye":
-		msg = bye(update)
+		msg = exec.bye()
 	case "/test":
-		msg = addArticle(update)
+		msg = exec.showConcrArtclByName()
 	default:
 
 	}
-
 	return msg
 }
 
-func greetings(update tgbot.Update) tgbot.MessageConfig {
-	msg := tgbot.NewMessage(update.Message.Chat.ID, fmt.Sprintf("Hello, %v!", update.Message.From.UserName))
+func (exec executor) greetings() tgbot.MessageConfig {
+	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, fmt.Sprintf("Hello, %v!", exec.update.Message.From.UserName))
 	return msg
 }
 
-func bye(update tgbot.Update) tgbot.MessageConfig {
-	text := fmt.Sprintf("Bye-bye! %v", update.Message.From.UserName)
-	msg := tgbot.NewMessage(update.Message.Chat.ID, text)
+func (exec executor) bye() tgbot.MessageConfig {
+	text := fmt.Sprintf("Bye-bye! %v", exec.update.Message.From.UserName)
+	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, text)
 	return msg
 }
 
-func addArticle(update tgbot.Update) tgbot.MessageConfig {
+func (exec executor) addArticle() tgbot.MessageConfig {
+	args := commndArgs(exec.update)
+	if len(args) < 4 { // this is needs rewriting. poor error handling
+		msg := tgbot.NewMessage(exec.update.Message.Chat.ID, "Not enough args for adding articles.")
+		return msg
+	}
+	database.AddArticle(args[0], args[1], args[2], args[3])
+	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, "Article added")
+	return msg
+}
+
+func (exec executor) showAllNames() tgbot.MessageConfig {
+	names := database.ShowAllNames()
+	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, names)
+	return msg
+}
+
+func (exec executor) showConcrArtclByName() tgbot.MessageConfig {
+	args := commndArgs(exec.update)
+	inf := database.ShowConcrByName(args[0])
+	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, inf)
+	return msg
+}
+
+func commndArgs(update tgbot.Update) []string {
 	args := update.Message.CommandArguments()
 	sepArgs := strings.Split(args, " ")
-	database.MakeQuery(sepArgs[0], sepArgs[1], sepArgs[2], sepArgs[3])
-	msg := tgbot.NewMessage(update.Message.Chat.ID, "Article added")
-	return msg
+	return sepArgs
 }
 
 /*
-- func see all articles
+- func see all articles by name +
 - func delete article
-- func see concrete article
+- func see concrete article +
 */
