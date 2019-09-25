@@ -6,12 +6,25 @@ import (
 	"log"
 	"strings"
 
-	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	//"TagaBot/database"
 )
 
+var numericKeyboard = tgbotapi.NewReplyKeyboard(
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("<:"),
+		tgbotapi.NewKeyboardButton("2"),
+		tgbotapi.NewKeyboardButton("3"),
+	),
+	tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton("4"),
+		tgbotapi.NewKeyboardButton("5"),
+		tgbotapi.NewKeyboardButton("6"),
+	),
+)
+
 type executor struct {
-	update tgbot.Update
+	update tgbotapi.Update
 }
 
 func main() {
@@ -22,8 +35,8 @@ func main() {
 	monitoring(bot, updates)
 }
 
-func createBot() *tgbot.BotAPI {
-	bot, err := tgbot.NewBotAPI("977213939:AAFbg20C4R3Avg9KhtWY2JrTTijncayLhX8")
+func createBot() *tgbotapi.BotAPI {
+	bot, err := tgbotapi.NewBotAPI("977213939:AAFbg20C4R3Avg9KhtWY2JrTTijncayLhX8")
 	if err != nil {
 		log.Panic(err)
 	}
@@ -31,14 +44,14 @@ func createBot() *tgbot.BotAPI {
 	return bot
 }
 
-func startGetUpd() tgbot.UpdateConfig {
-	u := tgbot.NewUpdate(0)
+func startGetUpd() tgbotapi.UpdateConfig {
+	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	return u
 }
 
-func monitoring(bot *tgbot.BotAPI, updates tgbot.UpdatesChannel) {
-	var msg tgbot.MessageConfig
+func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
+	var msg tgbotapi.MessageConfig
 	for update := range updates {
 		if update.Message == nil { // ignore any non-Message Updates
 			continue
@@ -47,65 +60,78 @@ func monitoring(bot *tgbot.BotAPI, updates tgbot.UpdatesChannel) {
 		if update.Message.IsCommand() {
 			msg = execCommnd(update)
 		} else {
-			msg = tgbot.NewMessage(update.Message.Chat.ID, update.Message.Text)
+			switch update.Message.Text {
+			case "open":
+				msg.ReplyMarkup = numericKeyboard
+			case "close":
+				msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+			default:
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+			}
 		}
 
 		bot.Send(msg)
 	}
 }
 
-func execCommnd(update tgbot.Update) tgbot.MessageConfig {
-	var msg tgbot.MessageConfig
+func execCommnd(update tgbotapi.Update) tgbotapi.MessageConfig {
+	var msg tgbotapi.MessageConfig
 	exec := executor{update}
 	switch command := strings.Fields(update.Message.Text)[0]; command {
 	case "/greetings":
 		msg = exec.greetings()
 	case "/bye":
 		msg = exec.bye()
+	case "/articles":
+		msg = exec.showAllNames()
+	case "/article":
+		msg = exec.showConcrArtclByName()
 	case "/test":
 		msg = exec.showConcrArtclByName()
+	case "/add":
+		msg = exec.addArticle()
 	default:
 
 	}
 	return msg
 }
 
-func (exec executor) greetings() tgbot.MessageConfig {
-	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, fmt.Sprintf("Hello, %v!", exec.update.Message.From.UserName))
+func (exec executor) greetings() tgbotapi.MessageConfig {
+	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, fmt.Sprintf("Hello, %v!", exec.update.Message.From.UserName))
 	return msg
 }
 
-func (exec executor) bye() tgbot.MessageConfig {
+func (exec executor) bye() tgbotapi.MessageConfig {
 	text := fmt.Sprintf("Bye-bye! %v", exec.update.Message.From.UserName)
-	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, text)
+	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, text)
 	return msg
 }
 
-func (exec executor) addArticle() tgbot.MessageConfig {
+func (exec executor) addArticle() tgbotapi.MessageConfig {
 	args := commndArgs(exec.update)
-	if len(args) < 4 { // this is needs rewriting. poor error handling
-		msg := tgbot.NewMessage(exec.update.Message.Chat.ID, "Not enough args for adding articles.")
+	if len(args) < 4 { // this is needs rewriting. Poor error handling
+		msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Not enough args for adding articles.")
 		return msg
 	}
 	database.AddArticle(args[0], args[1], args[2], args[3])
-	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, "Article added")
+	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Article added")
 	return msg
 }
 
-func (exec executor) showAllNames() tgbot.MessageConfig {
+func (exec executor) showAllNames() tgbotapi.MessageConfig {
 	names := database.ShowAllNames()
-	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, names)
+	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, names)
 	return msg
 }
 
-func (exec executor) showConcrArtclByName() tgbot.MessageConfig {
+func (exec executor) showConcrArtclByName() tgbotapi.MessageConfig {
 	args := commndArgs(exec.update)
 	inf := database.ShowConcrByName(args[0])
-	msg := tgbot.NewMessage(exec.update.Message.Chat.ID, inf)
+	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, inf)
 	return msg
 }
 
-func commndArgs(update tgbot.Update) []string {
+func commndArgs(update tgbotapi.Update) []string {
 	args := update.Message.CommandArguments()
 	sepArgs := strings.Split(args, " ")
 	return sepArgs

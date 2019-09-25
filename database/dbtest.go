@@ -13,12 +13,11 @@ type tagaBase struct {
 	db *sql.DB
 }
 
+var tb tagaBase
+
 func ConnectDB() {
 	tb.db, _ = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/testgo")
-
 }
-
-var tb tagaBase
 
 func AddArticle(name, tag, comment, url string) {
 
@@ -28,20 +27,19 @@ func AddArticle(name, tag, comment, url string) {
 	if err != nil {
 		panic(err.Error())
 	}
-	// be careful deferring Queries if you are using transactions
 	defer rows.Close()
-
 }
 
 func ShowAllNames() string {
 	query := fmt.Sprintf("SELECT name FROM articles")
-	rows, err := tb.db.Query(query)
-
-	if err != nil {
-		panic(err.Error())
-	}
+	rows := getRows(tb.db, query)
 	defer rows.Close()
 
+	names := genNamesList(rows)
+	return names
+}
+
+func genNamesList(rows *sql.Rows) string {
 	var names string
 	for rows.Next() {
 		var name string
@@ -55,29 +53,35 @@ func ShowAllNames() string {
 
 func ShowConcrByName(name string) string { //SELECT * FROM articles WHERE name='test';
 	query := fmt.Sprintf("SELECT name, tag, comment, url FROM articles WHERE name=\"%v\"", name)
-	rows, err := tb.db.Query(query)
-
-	if err != nil {
-		panic(err.Error())
-	}
+	rows := getRows(tb.db, query)
 	defer rows.Close()
 
+	article := genArtclInfo(rows)
+	return article
+}
+
+func genArtclInfo(rows *sql.Rows) string {
 	var articles []string
 
 	for rows.Next() {
-		var name string
-		var tag string
-		var comment string
-		var url string
+		var name, tag, comment, url string
 		if err := rows.Scan(&name, &tag, &comment, &url); err != nil {
 			log.Fatal(err)
 		}
 		article := fmt.Sprintf("Name: %v\nTag: %v\nComment: %v\nURL: %v\n", name, tag, comment, url)
-
 		articles = append(articles, article)
 	}
 	if len(articles) == 0 {
 		return "Article is not found :<"
 	}
 	return strings.Join(articles, "\n")
+}
+
+func getRows(db *sql.DB, query string) *sql.Rows {
+	rows, err := tb.db.Query(query)
+
+	if err != nil {
+		panic(err.Error())
+	}
+	return rows
 }
