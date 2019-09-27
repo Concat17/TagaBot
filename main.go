@@ -81,7 +81,11 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 			case 3:
 				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Enter article's url")
 			case 4:
-				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Done")
+				isAdding = false
+				args = args[:0]
+				user := getUserName(update)
+				database.AddArticle(user, args[0], args[1], args[2], args[3])
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Article added")
 			}
 		} else {
 			if update.Message.IsCommand() {
