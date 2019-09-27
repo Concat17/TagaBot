@@ -71,22 +71,30 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 		}
 		if isAdding {
 			args = append(args, update.Message.Text)
-			exec := executor{update}
-			exec.addArticle()
-			continue
-		}
-
-		if update.Message.IsCommand() {
-			msg = execCommnd(update)
-		} else {
-			switch update.Message.Text {
-			case "open":
-				msg.ReplyMarkup = numericKeyboard
-			case "close":
-				msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
-			default:
-				msg = tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+			switch len := len(args); len {
+			case 0:
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Enter article's name")
+			case 1:
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Enter article's tag")
+			case 2:
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Enter article's comment")
+			case 3:
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Enter article's url")
 			}
+		} else {
+			if update.Message.IsCommand() {
+				msg = execCommnd(update)
+			} else {
+				switch update.Message.Text {
+				case "open":
+					msg.ReplyMarkup = numericKeyboard
+				case "close":
+					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
+				default:
+					msg = tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+				}
+			}
+
 		}
 
 		bot.Send(msg)
