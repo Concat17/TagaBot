@@ -1,0 +1,22 @@
+{
+	"ImportPath": "TagaBot",
+	"GoVersion": "go1.13",
+	"GodepVersion": "v80",
+	"Deps": [
+		{
+			"ImportPath": "github.com/go-sql-driver/mysql",
+			"Comment": "v1.4.0-34-gb2c03bc",
+			"Rev": "b2c03bcae3d4bf9658e63ad4b9b32581d810fb20"
+		},
+		{
+			"ImportPath": "github.com/go-telegram-bot-api/telegram-bot-api",
+			"Comment": "v4.6.4-25-gb33efee",
+			"Rev": "b33efeebc78563cfeddf19563781cffb16aaabdf"
+		},
+		{
+			"ImportPath": "github.com/technoweenie/multipartstreamer",
+			"Comment": "v1.0.1",
+			"Rev": "a90a01d73ae432e2611d178c18367fbaa13e0154"
+		}
+	]
+}
