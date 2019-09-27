@@ -37,8 +37,8 @@ func main() {
 	http.HandleFunc("/", MainHandler)
 	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	bot := createBot()
-	//u := startGetUpd()
-	//updates, _ := bot.GetUpdatesChan(u)
+	// u := startGetUpd()
+	// updates, _ := bot.GetUpdatesChan(u)
 	updates := bot.ListenForWebhook("/" + bot.Token)
 	database.ConnectDB()
 	monitoring(bot, updates)
@@ -122,7 +122,8 @@ func (exec executor) addArticle() tgbotapi.MessageConfig {
 		msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Not enough args for adding articles.")
 		return msg
 	}
-	database.AddArticle(args[0], args[1], args[2], args[3])
+	user := exec.update.Message.From.UserName
+	database.AddArticle(user, args[0], args[1], args[2], args[3])
 	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Article added")
 	return msg
 }
@@ -151,3 +152,5 @@ func commndArgs(update tgbotapi.Update) []string {
 - func delete article
 - func see concrete article +
 */
+// 977213939:AAFbg20C4R3Avg9KhtWY2JrTTijncayLhX8
+// https://api.telegram.org/bot977213939:AAFbg20C4R3Avg9KhtWY2JrTTijncayLhX8/setWebhook?url=https://taga-bot.herokuapp.com/977213939:AAFbg20C4R3Avg9KhtWY2JrTTijncayLhX8

@@ -15,13 +15,19 @@ type tagaBase struct {
 
 var tb tagaBase
 
+//root:@tcp(127.0.0.1:3306)/testgo
+
 func ConnectDB() {
-	tb.db, _ = sql.Open("mysql", "root:@tcp(127.0.0.1:3306)/testgo")
+	var err error
+	tb.db, err = sql.Open("mysql", "iF8deKoJkQ:Hgfdk5m3Op@tcp(remotemysql.com:3306)/iF8deKoJkQ")
+	if err != nil {
+		panic(err.Error())
+	}
 }
 
-func AddArticle(name, tag, comment, url string) {
+func AddArticle(user, name, tag, comment, url string) {
 
-	query := fmt.Sprintf("INSERT INTO articles (name, tag, comment, url) VALUES (\"%v\", \"%v\", \"%v\", \"%v\")", name, tag, comment, url)
+	query := fmt.Sprintf("INSERT INTO articles (user, name, tag, comment, url) VALUES (\"%v\", \"%v\", \"%v\", \"%v\", \"%v\")", user, name, tag, comment, url)
 	rows, err := tb.db.Query(query)
 
 	if err != nil {
