@@ -80,6 +80,8 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Enter article's comment")
 			case 3:
 				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Enter article's url")
+			case 4:
+				msg = tgbotapi.NewMessage(update.Message.Chat.ID, "Done")
 			}
 		} else {
 			if update.Message.IsCommand() {
