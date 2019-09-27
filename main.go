@@ -4,11 +4,17 @@ import (
 	"TagaBot/database"
 	"fmt"
 	"log"
+	"net/http"
+	"os"
 	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	//"TagaBot/database"
 )
+
+func MainHandler(resp http.ResponseWriter, _ *http.Request) {
+	resp.Write([]byte("Hi there! I'm TagaBot!"))
+}
 
 var numericKeyboard = tgbotapi.NewReplyKeyboard(
 	tgbotapi.NewKeyboardButtonRow(
@@ -28,9 +34,12 @@ type executor struct {
 }
 
 func main() {
+	http.HandleFunc("/", MainHandler)
+	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	bot := createBot()
-	u := startGetUpd()
-	updates, _ := bot.GetUpdatesChan(u)
+	//u := startGetUpd()
+	//updates, _ := bot.GetUpdatesChan(u)
+	updates := bot.ListenForWebhook("/" + bot.Token)
 	database.ConnectDB()
 	monitoring(bot, updates)
 }
