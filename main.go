@@ -33,6 +33,9 @@ type executor struct {
 	update tgbotapi.Update
 }
 
+var isAdding bool
+var args []string
+
 func main() {
 	http.HandleFunc("/", MainHandler)
 	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
@@ -63,6 +66,10 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 	var msg tgbotapi.MessageConfig
 	for update := range updates {
 		if update.Message == nil { // ignore any non-Message Updates
+			continue
+		}
+		if isAdding {
+			args = append(args, update.Message.Text)
 			continue
 		}
 
@@ -117,14 +124,31 @@ func (exec executor) bye() tgbotapi.MessageConfig {
 }
 
 func (exec executor) addArticle() tgbotapi.MessageConfig {
-	args := commndArgs(exec.update)
-	if len(args) < 4 { // this is needs rewriting. Poor error handling
-		msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Not enough args for adding articles.")
-		return msg
+	var msg tgbotapi.MessageConfig
+	// args := commndArgs(exec.update)
+	isAdding = true
+	switch len := len(args); len {
+	case 0:
+		msg = tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Enter article's name")
+	case 1:
+		msg = tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Enter article's tag")
+	case 2:
+		msg = tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Enter article's comment")
+	case 3:
+		msg = tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Enter article's url")
+	default:
+		isAdding = false
+		args = args[:0]
+		user := getUserName(exec.update)
+		database.AddArticle(user, args[0], args[1], args[2], args[3])
+		msg = tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Article added")
 	}
-	user := exec.update.Message.From.UserName
-	database.AddArticle(user, args[0], args[1], args[2], args[3])
-	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Article added")
+
+	// if len(args) < 4 { // this is needs rewriting. Poor error handling
+	// 	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Not enough args for adding articles.")
+	// 	return msg
+	// }
+
 	return msg
 }
 
@@ -135,8 +159,9 @@ func (exec executor) showAllNames() tgbotapi.MessageConfig {
 }
 
 func (exec executor) showConcrArtclByName() tgbotapi.MessageConfig {
+	user := getUserName(exec.update)
 	args := commndArgs(exec.update)
-	inf := database.ShowConcrByName(args[0])
+	inf := database.ShowConcrByName(user, args[0])
 	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, inf)
 	return msg
 }
@@ -145,6 +170,10 @@ func commndArgs(update tgbotapi.Update) []string {
 	args := update.Message.CommandArguments()
 	sepArgs := strings.Split(args, " ")
 	return sepArgs
+}
+
+func getUserName(update tgbotapi.Update) string {
+	return update.Message.From.UserName
 }
 
 /*

@@ -57,8 +57,9 @@ func genNamesList(rows *sql.Rows) string {
 	return names
 }
 
-func ShowConcrByName(name string) string { //SELECT * FROM articles WHERE name='test';
-	query := fmt.Sprintf("SELECT name, tag, comment, url FROM articles WHERE name=\"%v\"", name)
+func ShowConcrByName(user, name string) string { //SELECT * FROM articles WHERE name='test';
+
+	query := fmt.Sprintf("SELECT name, tag, comment, url FROM articles WHERE user=\"%v\" and name=\"%v\"", user, name)
 	rows := getRows(tb.db, query)
 	defer rows.Close()
 
