@@ -64,12 +64,15 @@ func startGetUpd() tgbotapi.UpdateConfig {
 
 func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 	var msg tgbotapi.MessageConfig
+
 	for update := range updates {
 		if update.Message == nil { // ignore any non-Message Updates
 			continue
 		}
 		if isAdding {
 			args = append(args, update.Message.Text)
+			exec := executor{update}
+			exec.addArticle()
 			continue
 		}
 
