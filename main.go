@@ -80,7 +80,7 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 				case "424": //:poland
 					msg = tgbotapi.NewMessage(update.Message.Chat.ID, ":beers")
 				case "Лиман":
-					msg = tgbotapi.NewMessage(update.Message.Chat.ID, ":poland")
+					msg = tgbotapi.NewMessage(update.Message.Chat.ID, "u'\U000026C4")
 				case "close":
 				default:
 					msg = tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
