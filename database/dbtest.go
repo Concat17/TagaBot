@@ -25,9 +25,19 @@ func ConnectDB() {
 	}
 }
 
-func AddArticle(user, name, tag, comment, url string) {
+func AddArticle(user, name, tag, comment, url string) { //DELETE FROM `table_name` [WHERE condition];
 
 	query := fmt.Sprintf("INSERT INTO articles (user, name, tag, comment, url) VALUES (\"%v\", \"%v\", \"%v\", \"%v\", \"%v\")", user, name, tag, comment, url)
+	rows, err := tb.db.Query(query)
+
+	if err != nil {
+		panic(err.Error())
+	}
+	defer rows.Close()
+}
+
+func DelByName(user, name string) {
+	query := fmt.Sprintf("DELETE FROM articles WHERE user=\"%v\" and name=\"%v\"", user, name)
 	rows, err := tb.db.Query(query)
 
 	if err != nil {

@@ -72,7 +72,7 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 				isAdding = false
 				args = args[:0]
 			}
-		} else { //u'\U000026C4
+		} else {
 			if update.Message.IsCommand() {
 				msg = execCommnd(update)
 			} else {
@@ -109,6 +109,9 @@ func execCommnd(update tgbotapi.Update) tgbotapi.MessageConfig {
 		msg = exec.showConcrArtclByName()
 	case "/add":
 		msg = exec.addArticle()
+	case "/delete":
+		msg = exec.deleteByName()
+
 	default:
 
 	}
@@ -159,6 +162,14 @@ func (exec executor) showConcrArtclByName() tgbotapi.MessageConfig {
 	args := commndArgs(exec.update)
 	inf := database.ShowConcrByName(user, args[0])
 	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, inf)
+	return msg
+}
+
+func (exec executor) deleteByName() tgbotapi.MessageConfig {
+	user := getUserName(exec.update)
+	args := commndArgs(exec.update)
+	database.DelByName(user, args[0])
+	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Article was deleted")
 	return msg
 }
 
