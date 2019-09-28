@@ -16,19 +16,6 @@ func MainHandler(resp http.ResponseWriter, _ *http.Request) {
 	resp.Write([]byte("Hi there! I'm TagaBot!"))
 }
 
-var numericKeyboard = tgbotapi.NewReplyKeyboard(
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("<:"),
-		tgbotapi.NewKeyboardButton("2"),
-		tgbotapi.NewKeyboardButton("3"),
-	),
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("4"),
-		tgbotapi.NewKeyboardButton("5"),
-		tgbotapi.NewKeyboardButton("6"),
-	),
-)
-
 type executor struct {
 	update tgbotapi.Update
 }
@@ -40,8 +27,6 @@ func main() {
 	http.HandleFunc("/", MainHandler)
 	go http.ListenAndServe(":"+os.Getenv("PORT"), nil)
 	bot := createBot()
-	// u := startGetUpd()
-	// updates, _ := bot.GetUpdatesChan(u)
 	updates := bot.ListenForWebhook("/" + bot.Token)
 	database.ConnectDB()
 	monitoring(bot, updates)
@@ -92,10 +77,11 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 				msg = execCommnd(update)
 			} else {
 				switch update.Message.Text {
-				case "open":
-					msg.ReplyMarkup = numericKeyboard
+				case "424": //:poland
+					msg = tgbotapi.NewMessage(update.Message.Chat.ID, ":beers")
+				case "Лиман":
+					msg = tgbotapi.NewMessage(update.Message.Chat.ID, ":poland")
 				case "close":
-					msg.ReplyMarkup = tgbotapi.NewRemoveKeyboard(true)
 				default:
 					msg = tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
 				}
@@ -142,7 +128,6 @@ func (exec executor) bye() tgbotapi.MessageConfig {
 
 func (exec executor) addArticle() tgbotapi.MessageConfig {
 	var msg tgbotapi.MessageConfig
-	// args := commndArgs(exec.update)
 	isAdding = true
 	switch len := len(args); len {
 	case 0:
@@ -160,12 +145,6 @@ func (exec executor) addArticle() tgbotapi.MessageConfig {
 		database.AddArticle(user, args[0], args[1], args[2], args[3])
 		msg = tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Article added")
 	}
-
-	// if len(args) < 4 { // this is needs rewriting. Poor error handling
-	// 	msg := tgbotapi.NewMessage(exec.update.Message.Chat.ID, "Not enough args for adding articles.")
-	// 	return msg
-	// }
-
 	return msg
 }
 
