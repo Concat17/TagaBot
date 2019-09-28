@@ -72,15 +72,15 @@ func monitoring(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 				isAdding = false
 				args = args[:0]
 			}
-		} else {
+		} else { //u'\U000026C4
 			if update.Message.IsCommand() {
 				msg = execCommnd(update)
 			} else {
 				switch update.Message.Text {
 				case "424": //:poland
-					msg = tgbotapi.NewMessage(update.Message.Chat.ID, ":beers")
+					msg = tgbotapi.NewMessage(update.Message.Chat.ID, "U0001F37B")
 				case "Лиман":
-					msg = tgbotapi.NewMessage(update.Message.Chat.ID, "u'\U000026C4")
+					msg = tgbotapi.NewMessage(update.Message.Chat.ID, ":pl: :flag_pl:")
 				case "close":
 				default:
 					msg = tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
